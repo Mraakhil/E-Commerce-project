@@ -2,30 +2,40 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID = credentials('accesskey')
-        AWS_SECRET_ACCESS_KEY = credentials('secretaccesskey')
-    }
-
-    parameters {
-        string(name: 'region', defaultValue: 'ap-south-1', description: 'AWS Region')
-        string(name: 'cluster', defaultValue: 'my-eks-cluster', description: 'EKS Cluster Name')
+        AWS_REGION = "ap-south-1"
+        CLUSTER_NAME = "my-eks-cluster"
     }
 
     stages {
-        stage('update kubeconfig') {
+
+        stage('Checkout') {
             steps {
-                sh "aws eks update-kubeconfig --region ${params.region} --name ${params.cluster}"
+                checkout scm
             }
         }
-        stage('repo update') {
+
+        stage('Update kubeconfig') {
             steps {
-                sh "helm repo add E-COMMERCE-PROJECT https://github.com/Mraakhil/E-Commerce-project.git"
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-credentials']
+                ]) {
+                    sh '''
+                    aws eks update-kubeconfig \
+                    --region $AWS_REGION \
+                    --name $CLUSTER_NAME
+                    '''
+                }
             }
-        }    
-        stage('helm update chart') {
+        }
+
+        stage('Deploy Helm Chart') {
             steps {
-                sh 'helm repo update'
-                sh 'helm upgrade --install frontend E-COMMERCE-PROJECT'
+                sh '''
+                helm upgrade --install ecommerce . \
+                  --namespace default \
+                  --create-namespace
+                '''
             }
         }
     }
