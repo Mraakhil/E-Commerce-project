@@ -17,6 +17,12 @@ pipeline {
                 sh "aws eks update-kubeconfig --region ${params.region} --name ${params.cluster}"
             }
         }
+     stages {
+        stage('repo update') {
+            steps {
+                sh "helm repo add E-COMMERCE-PROJECT https://github.com/Mraakhil/E-Commerce-project.git"
+            }
+        }    
         stage('helm update chart') {
             steps {
                 sh 'helm repo update'
@@ -25,3 +31,4 @@ pipeline {
         }
     }
 }
+
