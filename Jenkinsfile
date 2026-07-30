@@ -13,7 +13,7 @@ pipeline {
         string(name: 'AWS_REGION', defaultValue: 'ap-south-1', description: 'AWS Region')
         string(name: 'CLUSTER_NAME', defaultValue: 'my-eks-cluster', description: 'EKS Cluster Name')
         string(name: 'NAMESPACE', defaultValue: 'default', description: 'Kubernetes namespace to deploy into')
-        string(name: 'CHART_PATH', defaultValue: '.', description: 'Path to the Helm chart directory (relative to repo root). Update this once you know the real path.')
+        string(name: 'CHART_PATH', defaultValue: './ecommerce', description: 'Path to the Helm chart directory (relative to repo root).')
     }
 
     stages {
@@ -50,7 +50,7 @@ pipeline {
                 helm upgrade --install ecommerce ${CHART_PATH} \
                   --namespace ${NAMESPACE} \
                   --create-namespace \
-                  --atomic \
+                  --rollback-on-failure \
                   --timeout 5m
                 '''
             }
