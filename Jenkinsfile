@@ -79,16 +79,30 @@ pipeline {
         }
 
         stage('Deploy Helm Chart') {
-            steps {
-                sh '''
-                helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
-                    --namespace ${NAMESPACE} \
-                    --create-namespace \
-                    --wait \
-                    --timeout 10m \
-                    --atomic
-                '''
-            }
+             steps {
+                  sh '''
+                  export KUBECONFIG=${KUBECONFIG}
+
+                   helm upgrade --install ecommerce ./ecommerce \
+                   --namespace ${NAMESPACE} \
+                   --create-namespace \
+                   --wait \
+                   --timeout 10m \
+                   --rollback-on-failure \
+                   --kubeconfig ${KUBECONFIG} || true
+
+                     echo "===== Pods ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get pods -A -o wide
+
+                     echo "===== Deployments ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get deployments -A
+
+                     echo "===== Events ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get events -A --sort-by=.metadata.creationTimestamp
+
+                     exit 1
+                     '''
+             }
         }
 
         stage('Verify Deployment') {
