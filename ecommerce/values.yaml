@@ -7,8 +7,8 @@ revisionHistoryLimit: 10
 
 image:
   repository: 848684726346.dkr.ecr.ap-south-1.amazonaws.com/project/cicdproject
-  pullPolicy: Always # Set to Always since we are using a "latest" tag
-  tag: "frontend-latest"
+  tag: latest
+  pullPolicy: Always
 
 nameOverride: "opentelemetry-demo-frontend"
 fullnameOverride: "opentelemetry-demo-frontend"
@@ -17,7 +17,8 @@ serviceAccount:
   # Specifies whether a service account should be created (if you add the template)
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: "opentelemetry-demo"
+  name: opentelemetry-demo
+  
 
 service:
   type: ClusterIP
