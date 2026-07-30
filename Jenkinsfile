@@ -20,7 +20,7 @@ pipeline {
 
         stage('GIT Checkout') {
             steps {
-                git branch: 'dev', url: 'https://github.com/Mraakhil/E-Commerce-project.git'
+                git branch: 'prod', url: 'https://github.com/Mraakhil/E-Commerce-project.git'
             }
         }
 
