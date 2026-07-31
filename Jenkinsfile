@@ -99,8 +99,6 @@ pipeline {
 
                      echo "===== Events ====="
                      kubectl --kubeconfig=${KUBECONFIG} get events -A --sort-by=.metadata.creationTimestamp
-
-                     exit 1
                      '''
              }
         }
