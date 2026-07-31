@@ -4,11 +4,17 @@ metadata:
   name: {{ include "opentelemetry-frontend.fullname" . }}
   labels:
     {{- include "opentelemetry-frontend.labels" . | nindent 4 }}
+
 spec:
   type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      name: tcp-service
-      targetPort: {{ .Values.service.targetPort }}
   selector:
     {{- include "opentelemetry-frontend.selectorLabels" . | nindent 4 }}
+
+  ports:
+    - name: tcp-service
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
