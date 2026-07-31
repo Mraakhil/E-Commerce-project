@@ -7,7 +7,7 @@ revisionHistoryLimit: 10
 
 image:
   repository: 848684726346.dkr.ecr.ap-south-1.amazonaws.com/project/cicdproject
-  tag: latest
+  tag: frontend-latest
   pullPolicy: Always
 
 nameOverride: "opentelemetry-demo-frontend"
