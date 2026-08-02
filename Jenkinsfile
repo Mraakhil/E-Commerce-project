@@ -27,7 +27,7 @@ pipeline {
 
         choice(
             name: 'CHART_PATH',
-            choices: ['ecommerce', '2frontend'],
+            choices: ['ecommerce', 'frontendproxy'],
             description: 'Helm Chart Path'
         )
         choice(
