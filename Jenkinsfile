@@ -32,7 +32,7 @@ pipeline {
         )
         choice(
             name: 'RELEASE_NAME',
-            choices: ['ecommerce', '2frontend'],
+            choices: ['ecommerce', 'frontendproxy'],
             description: 'Helm Release Name'
         )
 
