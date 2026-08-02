@@ -4,6 +4,7 @@ metadata:
   name: {{ include "opentelemetry-frontendproxy.fullname" . }}
   labels:
     {{- include "opentelemetry-frontendproxy.labels" . | nindent 4 }}
+
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
@@ -21,13 +22,14 @@ spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
 
       containers:
-             - name: frontendproxy
-               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-               imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: frontendproxy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           ports:
-            - name: service
+            - name: http
               containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
 
           env:
             - name: OTEL_SERVICE_NAME
@@ -106,6 +108,8 @@ spec:
             runAsUser: 101
             runAsGroup: 101
             runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
 
           volumeMounts:
             {{- toYaml .Values.volumeMounts | nindent 12 }}
