@@ -1,0 +1,76 @@
+# Number of pod replicas
+replicaCount: 1
+
+image:
+  repository: 848684726346.dkr.ecr.ap-south-1.amazonaws.com/project/cicdproject
+  tag: frontend-proxy-latest
+  pullPolicy: Always
+
+serviceAccount:
+  create: false
+  name: opentelemetry-demo
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  name: tcp-service
+
+resources:
+  limits:
+    memory: 50Mi
+  requests: {}
+
+securityContext:
+  runAsUser: 101
+  runAsGroup: 101
+  runAsNonRoot: true
+
+env:
+  otelCollectorName: opentelemetry-demo-otelcol
+
+  envoyPort: "8080"
+
+  flagd:
+    host: opentelemetry-demo-flagd
+    port: "8013"
+    uiPort: "4000"
+
+  frontend:
+    host: opentelemetry-demo-frontend
+    port: "8080"
+
+  grafana:
+    host: opentelemetry-demo-grafana
+    port: "80"
+
+  imageProvider:
+    host: opentelemetry-demo-imageprovider
+    port: "8081"
+
+  jaeger:
+    host: opentelemetry-demo-jaeger-query
+    port: "16686"
+
+  locust:
+    host: opentelemetry-demo-loadgenerator
+    port: "8089"
+
+  otelCollector:
+    grpcPort: "4317"
+    httpPort: "4318"
+
+  resourceAttributes: "service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.12.0"
+
+podLabels:
+  app: opentelemetry-demo-frontendproxy
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

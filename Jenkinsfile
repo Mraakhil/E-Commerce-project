@@ -1,23 +1,71 @@
 pipeline {
     agent any
 
-    environment {
-        AWS_ACCESS_KEY_ID     = credentials('accesskey')
-        AWS_SECRET_ACCESS_KEY = credentials('secretaccesskey')
-        AWS_REGION            = "${params.AWS_REGION}"
-        CLUSTER_NAME          = "${params.CLUSTER_NAME}"
-        KUBECONFIG            = "${WORKSPACE}/kubeconfig"
+    options {
+        skipDefaultCheckout(true)
+        timestamps()
     }
 
     parameters {
-        string(name: 'AWS_REGION', defaultValue: 'ap-south-1', description: 'AWS Region')
-        string(name: 'CLUSTER_NAME', defaultValue: 'my-eks-cluster', description: 'EKS Cluster Name')
+        string(
+            name: 'AWS_REGION',
+            defaultValue: 'ap-south-1',
+            description: 'AWS Region'
+        )
+
+        string(
+            name: 'CLUSTER_NAME',
+            defaultValue: 'my-eks-cluster',
+            description: 'EKS Cluster Name'
+        )
+
+        string(
+            name: 'NAMESPACE',
+            defaultValue: 'default',
+            description: 'Kubernetes Namespace'
+        )
+
+        choice(
+            name: 'chart path',
+            choices: ['ecommerce', '2frontend'],
+            description: 'Helm Chart Path'
+        )
+
+        
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('accesskey')
+        AWS_SECRET_ACCESS_KEY = credentials('secretaccesskey')
+        KUBECONFIG            = "${WORKSPACE}/kubeconfig"
+        CHART_PATH            = "${chart path}"
     }
 
     stages {
-        stage('GIT Checkout') {
+
+        stage('Checkout Source') {
             steps {
-                git branch: 'dev', url: 'https://github.com/Mraakhil/E-Commerce-project.git'
+                git branch: 'dev',
+                    url: 'https://github.com/Mraakhil/E-Commerce-project.git'
+            }
+        }
+
+        stage('Verify Helm Chart') {
+            steps {
+                sh '''
+                echo "Current Workspace:"
+                pwd
+
+                echo "Workspace Files:"
+                ls -la
+
+                echo "Chart Directory:"
+                ls -la ${CHART_PATH}
+
+                test -f ${CHART_PATH}/Chart.yaml
+
+                helm lint ${CHART_PATH}
+                '''
             }
         }
 
@@ -25,25 +73,80 @@ pipeline {
             steps {
                 sh '''
                 aws eks update-kubeconfig \
-                  --region $AWS_REGION \
-                  --name $CLUSTER_NAME \
-                  --kubeconfig $KUBECONFIG
+                    --region ${AWS_REGION} \
+                    --name ${CLUSTER_NAME} \
+                    --kubeconfig ${KUBECONFIG}
                 '''
             }
         }
 
         stage('Deploy Helm Chart') {
+             steps {
+                  sh '''
+                  export KUBECONFIG=${KUBECONFIG}
+
+                   helm upgrade --install ecommerce ${CHART_PATH} \
+                   --namespace ${NAMESPACE} \
+                   --create-namespace \
+                   --wait \
+                   --timeout 10m \
+                   --rollback-on-failure \
+                   --kubeconfig ${KUBECONFIG} || true
+
+                     echo "===== Pods ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get pods -A -o wide
+
+                     echo "===== Deployments ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get deployments -A
+
+                     echo "===== Events ====="
+                     kubectl --kubeconfig=${KUBECONFIG} get events -A --sort-by=.metadata.creationTimestamp
+                     '''
+             }
+        }
+
+        stage('Verify Deployment') {
             steps {
                 sh '''
-                helm upgrade --install ecommerce . \
-                  --namespace default \
-                  --create-namespace
+                kubectl get all -n ${NAMESPACE}
+
+                echo "--------------------------------"
+
+                helm list -n ${NAMESPACE}
+
+                echo "--------------------------------"
+
+                helm status ${RELEASE_NAME} -n ${NAMESPACE}
                 '''
             }
         }
     }
 
     post {
+
+        success {
+            echo 'Deployment completed successfully.'
+        }
+
+        failure {
+            sh '''
+            echo "===== Workspace ====="
+            pwd
+
+            echo "===== Chart Files ====="
+            find . -name Chart.yaml
+
+            echo "===== Helm Version ====="
+            helm version || true
+
+            echo "===== Kubernetes Nodes ====="
+            kubectl get nodes || true
+
+            echo "===== Pods ====="
+            kubectl get pods -A || true
+            '''
+        }
+
         always {
             cleanWs()
         }

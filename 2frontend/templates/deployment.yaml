@@ -1,31 +1,114 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "opentelemetry-frontend.fullname" . }}
+  name: {{ include "opentelemetry-frontendproxy.fullname" . }}
   labels:
-    {{- include "opentelemetry-frontend.labels" . | nindent 4 }}
+    {{- include "opentelemetry-frontendproxy.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+
   selector:
     matchLabels:
-      {{- include "opentelemetry-frontend.selectorLabels" . | nindent 6 }}
+      {{- include "opentelemetry-frontendproxy.selectorLabels" . | nindent 6 }}
+
   template:
     metadata:
       labels:
-        {{- include "opentelemetry-frontend.labels" . | nindent 8 }}
+        {{- include "opentelemetry-frontendproxy.selectorLabels" . | nindent 8 }}
+
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
       containers:
-        - name: frontend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+             - name: frontendproxy
+               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+               imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
-            - containerPort: {{ .Values.service.targetPort }}
-              name: service
+            - name: service
+              containerPort: {{ .Values.service.targetPort }}
+
           env:
-            {{- toYaml .Values.env | nindent 12 }}
+            - name: OTEL_SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.labels['app.kubernetes.io/component']
+
+            - name: OTEL_COLLECTOR_NAME
+              value: {{ .Values.env.OTEL_COLLECTOR_NAME | quote }}
+
+            - name: OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+              value: {{ .Values.env.OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE | quote }}
+
+            - name: ENVOY_PORT
+              value: {{ .Values.env.ENVOY_PORT | quote }}
+
+            - name: FLAGD_HOST
+              value: {{ .Values.env.FLAGD_HOST | quote }}
+
+            - name: FLAGD_PORT
+              value: {{ .Values.env.FLAGD_PORT | quote }}
+
+            - name: FLAGD_UI_HOST
+              value: {{ .Values.env.FLAGD_UI_HOST | quote }}
+
+            - name: FLAGD_UI_PORT
+              value: {{ .Values.env.FLAGD_UI_PORT | quote }}
+
+            - name: FRONTEND_HOST
+              value: {{ .Values.env.FRONTEND_HOST | quote }}
+
+            - name: FRONTEND_PORT
+              value: {{ .Values.env.FRONTEND_PORT | quote }}
+
+            - name: GRAFANA_SERVICE_HOST
+              value: {{ .Values.env.GRAFANA_SERVICE_HOST | quote }}
+
+            - name: GRAFANA_SERVICE_PORT
+              value: {{ .Values.env.GRAFANA_SERVICE_PORT | quote }}
+
+            - name: IMAGE_PROVIDER_HOST
+              value: {{ .Values.env.IMAGE_PROVIDER_HOST | quote }}
+
+            - name: IMAGE_PROVIDER_PORT
+              value: {{ .Values.env.IMAGE_PROVIDER_PORT | quote }}
+
+            - name: JAEGER_SERVICE_HOST
+              value: {{ .Values.env.JAEGER_SERVICE_HOST | quote }}
+
+            - name: JAEGER_SERVICE_PORT
+              value: {{ .Values.env.JAEGER_SERVICE_PORT | quote }}
+
+            - name: LOCUST_WEB_HOST
+              value: {{ .Values.env.LOCUST_WEB_HOST | quote }}
+
+            - name: LOCUST_WEB_PORT
+              value: {{ .Values.env.LOCUST_WEB_PORT | quote }}
+
+            - name: OTEL_COLLECTOR_HOST
+              value: "$(OTEL_COLLECTOR_NAME)"
+
+            - name: OTEL_COLLECTOR_PORT_GRPC
+              value: {{ .Values.env.OTEL_COLLECTOR_PORT_GRPC | quote }}
+
+            - name: OTEL_COLLECTOR_PORT_HTTP
+              value: {{ .Values.env.OTEL_COLLECTOR_PORT_HTTP | quote }}
+
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=$(OTEL_SERVICE_NAME),service.namespace={{ .Release.Namespace }},service.version={{ .Chart.AppVersion }}"
+
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+
+          volumeMounts:
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+
+      volumes:
+        {{- toYaml .Values.volumes | nindent 8 }}

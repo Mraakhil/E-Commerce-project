@@ -1,41 +1,36 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "opentelemetry-frontend.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- define "opentelemetry-frontendproxy.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "opentelemetry-frontend.fullname" -}}
+{{- define "opentelemetry-frontendproxy.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" .Release.Name (include "opentelemetry-frontendproxy.name" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "opentelemetry-frontend.labels" -}}
-{{ include "opentelemetry-frontend.selectorLabels" . }}
+{{- define "opentelemetry-frontendproxy.labels" -}}
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+{{ include "opentelemetry-frontendproxy.selectorLabels" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-app.kubernetes.io/part-of: opentelemetry-demo
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "opentelemetry-frontend.selectorLabels" -}}
-opentelemetry.io/name: {{ include "opentelemetry-frontend.fullname" . }}
+{{- define "opentelemetry-frontendproxy.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "opentelemetry-frontendproxy.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: frontend
-app.kubernetes.io/name: {{ include "opentelemetry-frontend.name" . }}
+opentelemetry.io/name: {{ include "opentelemetry-frontendproxy.fullname" . }}
 {{- end }}
