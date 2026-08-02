@@ -7,8 +7,7 @@ image:
   pullPolicy: Always
 
 serviceAccount:
-  create: false
-  name: opentelemetry-demo
+  name: default
 
 service:
   type: ClusterIP

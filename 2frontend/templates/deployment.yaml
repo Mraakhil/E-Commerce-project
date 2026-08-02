@@ -19,8 +19,7 @@ spec:
         {{- include "opentelemetry-frontendproxy.selectorLabels" . | nindent 8 }}
 
     spec:
-      serviceAccountName: {{ .Values.serviceAccount.name }}
-
+      serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
       containers:
         - name: frontendproxy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
