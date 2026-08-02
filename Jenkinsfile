@@ -26,7 +26,7 @@ pipeline {
         )
 
         choice(
-            name: 'chart path',
+            name: 'CHART_PATH',
             choices: ['ecommerce', '2frontend'],
             description: 'Helm Chart Path'
         )
@@ -38,7 +38,7 @@ pipeline {
         AWS_ACCESS_KEY_ID     = credentials('accesskey')
         AWS_SECRET_ACCESS_KEY = credentials('secretaccesskey')
         KUBECONFIG            = "${WORKSPACE}/kubeconfig"
-        CHART_PATH            = "${chart path}"
+        CHART_PATH            = "${params.CHART_PATH}"
     }
 
     stages {
