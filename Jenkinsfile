@@ -30,6 +30,11 @@ pipeline {
             choices: ['ecommerce', '2frontend'],
             description: 'Helm Chart Path'
         )
+        choice(
+            name: 'RELEASE_NAME',
+            choices: ['ecommerce', '2frontend'],
+            description: 'Helm Release Name'
+        )
 
         
     }
@@ -85,7 +90,7 @@ pipeline {
                   sh '''
                   export KUBECONFIG=${KUBECONFIG}
 
-                   helm upgrade --install ecommerce ${CHART_PATH} \
+                   helm upgrade --install ${RELEASE_NAME} ${CHART_PATH} \
                    --namespace ${NAMESPACE} \
                    --create-namespace \
                    --wait \
