@@ -1,80 +1,75 @@
 # Number of pod replicas
 replicaCount: 1
 
-# -------------------------------------------------------------------
-# Frontend Proxy (Envoy) Configuration
-# -------------------------------------------------------------------
-
 image:
   repository: 848684726346.dkr.ecr.ap-south-1.amazonaws.com/project/cicdproject
   tag: frontend-proxy-latest
   pullPolicy: Always
 
+serviceAccount:
+  name: default
+
 service:
   type: ClusterIP
   port: 8080
+  targetPort: 8080
+  name: tcp-service
 
-# --- Resource Allocations ---
-# Increased memory limits to prevent CrashLoopBackOff/OOM failures
 resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
   limits:
-    cpu: 300m
-    memory: 256Mi
+    memory: 50Mi
+  requests: {}
 
-# --- Environment Variables ---
-# Envoy uses these to dynamically assemble its proxy configuration on startup
+securityContext:
+  runAsUser: 101
+  runAsGroup: 101
+  runAsNonRoot: true
+
 env:
-  # Envoy Listening Port
-  - name: ENVOY_PORT
-    value: "8080"
+  otelCollectorName: opentelemetry-demo-otelcol
 
-  # Primary Frontend Microservice (Next.js)
-  - name: FRONTEND_HOST
-    value: "ecommerce-frontend" # Update to match your actual frontend service name
-  - name: FRONTEND_PORT
-    value: "8080"
+  envoyPort: "8080"
 
-  # OpenTelemetry Collector
-  - name: OTEL_COLLECTOR_NAME
-    value: "otel-collector"
-  - name: OTEL_COLLECTOR_HOST
-    value: "otel-collector"
-  - name: OTEL_COLLECTOR_PORT_GRPC
-    value: "4317"
-  - name: OTEL_COLLECTOR_PORT_HTTP
-    value: "4318"
+  flagd:
+    host: opentelemetry-demo-flagd
+    port: "8013"
+    uiPort: "4000"
 
-  # Feature Flags (Flagd)
-  - name: FLAGD_HOST
-    value: "flagd"
-  - name: FLAGD_PORT
-    value: "8013"
-  - name: FLAGD_UI_HOST
-    value: "flagd-ui"
-  - name: FLAGD_UI_PORT
-    value: "4000"
+  frontend:
+    host: opentelemetry-demo-frontend
+    port: "8080"
 
-  # Image Provider
-  - name: IMAGE_PROVIDER_HOST
-    value: "imageprovider"
-  - name: IMAGE_PROVIDER_PORT
-    value: "8081"
+  grafana:
+    host: opentelemetry-demo-grafana
+    port: "80"
 
-  # Observability Tools (Grafana & Jaeger)
-  - name: GRAFANA_SERVICE_HOST
-    value: "grafana"
-  - name: GRAFANA_SERVICE_PORT
-    value: "3000"
-  - name: JAEGER_SERVICE_HOST
-    value: "jaeger"
-  - name: JAEGER_SERVICE_PORT
-    value: "16686"
+  imageProvider:
+    host: opentelemetry-demo-imageprovider
+    port: "8081"
 
-  # Load Generator / Locust
-  - name: LOCUST_WEB_HOST
-    value: "locust"
-  - name: LOCUST_WEB_PORT
-    value: "8089"
+  jaeger:
+    host: opentelemetry-demo-jaeger-query
+    port: "16686"
+
+  locust:
+    host: opentelemetry-demo-loadgenerator
+    port: "8089"
+
+  otelCollector:
+    grpcPort: "4317"
+    httpPort: "4318"
+
+  resourceAttributes: "service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.12.0"
+
+podLabels:
+  app: opentelemetry-demo-frontendproxy
+
+volumes: []
+
+volumeMounts: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
