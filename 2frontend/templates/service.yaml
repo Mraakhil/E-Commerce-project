@@ -1,15 +1,19 @@
 apiVersion: v1
 kind: Service
+
 metadata:
   name: {{ include "opentelemetry-frontendproxy.fullname" . }}
   labels:
     {{- include "opentelemetry-frontendproxy.labels" . | nindent 4 }}
+
 spec:
   type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
-      protocol: TCP
-      name: tcp-service
+
   selector:
     {{- include "opentelemetry-frontendproxy.selectorLabels" . | nindent 4 }}
+
+  ports:
+    - name: {{ .Values.service.name }}
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}

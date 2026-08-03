@@ -1,75 +1,132 @@
-# Number of pod replicas
+# -----------------------------------------------------------------------------
+# Chart Configuration
+# -----------------------------------------------------------------------------
+
+nameOverride: ""
+fullnameOverride: ""
+
 replicaCount: 1
+revisionHistoryLimit: 3
+
+# -----------------------------------------------------------------------------
+# Image
+# -----------------------------------------------------------------------------
 
 image:
   repository: 848684726346.dkr.ecr.ap-south-1.amazonaws.com/project/cicdproject
   tag: frontend-proxy-latest
   pullPolicy: Always
 
+# -----------------------------------------------------------------------------
+# Service Account
+# -----------------------------------------------------------------------------
+
 serviceAccount:
+  create: false
   name: default
+
+# -----------------------------------------------------------------------------
+# Service
+# -----------------------------------------------------------------------------
 
 service:
   type: ClusterIP
+  name: http
   port: 8080
   targetPort: 8080
-  name: tcp-service
+
+# -----------------------------------------------------------------------------
+# Resources
+# -----------------------------------------------------------------------------
 
 resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
   limits:
-    memory: 50Mi
-  requests: {}
+    cpu: 500m
+    memory: 256Mi
+
+# -----------------------------------------------------------------------------
+# Security Context
+# -----------------------------------------------------------------------------
 
 securityContext:
   runAsUser: 101
   runAsGroup: 101
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+
+# -----------------------------------------------------------------------------
+# Environment Variables
+# -----------------------------------------------------------------------------
 
 env:
-  otelCollectorName: opentelemetry-demo-otelcol
 
-  envoyPort: "8080"
+  OTEL_COLLECTOR_NAME: "opentelemetry-demo-otelcol"
 
-  flagd:
-    host: opentelemetry-demo-flagd
-    port: "8013"
-    uiPort: "4000"
+  OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE: "cumulative"
 
-  frontend:
-    host: opentelemetry-demo-frontend
-    port: "8080"
+  ENVOY_PORT: "8080"
 
-  grafana:
-    host: opentelemetry-demo-grafana
-    port: "80"
+  FLAGD_HOST: "opentelemetry-demo-flagd"
+  FLAGD_PORT: "8013"
 
-  imageProvider:
-    host: opentelemetry-demo-imageprovider
-    port: "8081"
+  FLAGD_UI_HOST: "opentelemetry-demo-flagd"
+  FLAGD_UI_PORT: "4000"
 
-  jaeger:
-    host: opentelemetry-demo-jaeger-query
-    port: "16686"
+  FRONTEND_HOST: "opentelemetry-demo-frontend"
+  FRONTEND_PORT: "8080"
 
-  locust:
-    host: opentelemetry-demo-loadgenerator
-    port: "8089"
+  GRAFANA_SERVICE_HOST: "opentelemetry-demo-grafana"
+  GRAFANA_SERVICE_PORT: "80"
 
-  otelCollector:
-    grpcPort: "4317"
-    httpPort: "4318"
+  IMAGE_PROVIDER_HOST: "opentelemetry-demo-imageprovider"
+  IMAGE_PROVIDER_PORT: "8081"
 
-  resourceAttributes: "service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.12.0"
+  JAEGER_SERVICE_HOST: "opentelemetry-demo-jaeger-query"
+  JAEGER_SERVICE_PORT: "16686"
+
+  LOCUST_WEB_HOST: "opentelemetry-demo-loadgenerator"
+  LOCUST_WEB_PORT: "8089"
+
+  OTEL_COLLECTOR_PORT_GRPC: "4317"
+  OTEL_COLLECTOR_PORT_HTTP: "4318"
+
+# -----------------------------------------------------------------------------
+# Labels
+# -----------------------------------------------------------------------------
 
 podLabels:
-  app: opentelemetry-demo-frontendproxy
+  app: frontendproxy
+
+# -----------------------------------------------------------------------------
+# Scheduling
+# -----------------------------------------------------------------------------
+
+nodeSelector: {}
+
+affinity: {}
+
+tolerations: []
+
+# -----------------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------------
 
 volumes: []
 
 volumeMounts: []
 
-nodeSelector: {}
+# -----------------------------------------------------------------------------
+# Image Pull Secrets
+# -----------------------------------------------------------------------------
 
-tolerations: []
+imagePullSecrets: []
 
-affinity: {}
+# -----------------------------------------------------------------------------
+# Pod Annotations
+# -----------------------------------------------------------------------------
+
+podAnnotations: {}

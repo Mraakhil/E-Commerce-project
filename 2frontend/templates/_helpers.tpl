@@ -6,7 +6,7 @@ Expand the name of the chart.
 {{- end }}
 
 {{/*
-Create a default fully qualified app name.
+Create a fullname.
 */}}
 {{- define "opentelemetry-frontendproxy.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -17,13 +17,23 @@ Create a default fully qualified app name.
 {{- end }}
 
 {{/*
+Chart label
+*/}}
+{{- define "opentelemetry-frontendproxy.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}
+{{- end }}
+
+{{/*
 Common labels
 */}}
 {{- define "opentelemetry-frontendproxy.labels" -}}
-helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-{{ include "opentelemetry-frontendproxy.selectorLabels" . }}
+helm.sh/chart: {{ include "opentelemetry-frontendproxy.chart" . }}
+app.kubernetes.io/name: {{ include "opentelemetry-frontendproxy.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/component: frontendproxy
+opentelemetry.io/name: {{ include "opentelemetry-frontendproxy.fullname" . }}
 {{- end }}
 
 {{/*
